@@ -23,6 +23,7 @@ export default function CitizenHome() {
   const [submitted, setSubmitted] = useState(null);
   const [imageNames, setImageNames] = useState([]);
   const [step, setStep] = useState(0);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
 
   const handle = (e) => {
     const next = { ...form, [e.target.name]: e.target.value };
@@ -60,6 +61,34 @@ export default function CitizenHome() {
   };
 
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 0));
+
+  const generateDescription = async () => {
+    if ((form.images || []).length === 0) {
+      return toast.error("Upload images first to generate a description.");
+    }
+
+    setGeneratingDescription(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("category", form.category);
+      formData.append("location", JSON.stringify({ address: form.address, ward: form.ward }));
+      (form.images || []).forEach((file) => formData.append("images", file));
+
+      const res = await api.post("/complaints/describe-images", formData);
+      if (res.data?.description) {
+        setForm((prev) => ({ ...prev, description: res.data.description }));
+        toast.success("AI-generated description added.");
+      } else {
+        toast.error("AI webhook did not return a description.");
+      }
+    } catch (err) {
+      console.error("AI description error", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to generate description.");
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -155,16 +184,6 @@ export default function CitizenHome() {
                       placeholder="e.g. Large pothole on Main Street near bus stop" />
                   </div>
 
-                  <div className="form-group" style={{ marginTop: 16 }}>
-                    <label className="form-label">Description *</label>
-                    <textarea className="form-control" name="description" value={form.description} onChange={handle}
-                      placeholder="Describe the issue in detail. Up to 100 words. Include when it started, impact, and important context..."
-                      rows={5} />
-                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: 6 }}>
-                      {form.description.trim().split(/\s+/).filter(Boolean).length} / 100 words
-                    </div>
-                  </div>
-
                   <div className="form-group">
                     <label className="form-label">Upload Images</label>
                     <div
@@ -197,6 +216,26 @@ export default function CitizenHome() {
                         Selected: {imageNames.join(", ")}
                       </div>
                     )}
+                  </div>
+
+                  <div className="form-group" style={{ marginTop: 16 }}>
+                    <label className="form-label">Description *</label>
+                    <textarea className="form-control" name="description" value={form.description} onChange={handle}
+                      placeholder="Describe the issue in detail. Up to 100 words. Include when it started, impact, and important context..."
+                      rows={5} />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginTop: 6 }}>
+                      <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                        {form.description.trim().split(/\s+/).filter(Boolean).length} / 100 words
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary btn-sm"
+                        disabled={generatingDescription || (form.images || []).length === 0}
+                        onClick={generateDescription}
+                      >
+                        {generatingDescription ? "Analyzing..." : "image- analyses"}
+                      </button>
+                    </div>
                   </div>
                 </>
               )}

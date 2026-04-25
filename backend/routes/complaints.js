@@ -107,6 +107,71 @@ function categoryFrequency(complaints) {
   }, {});
 }
 
+async function cleanupFiles(files) {
+  await Promise.all(
+    (files || []).map((file) =>
+      fs.promises.unlink(file.path).catch(() => {})
+    )
+  );
+}
+
+router.post(
+  "/describe-images",
+  verifyToken,
+  upload.array("images", 5),
+  async (req, res) => {
+    const webhookUrl = process.env.N8N_WEBHOOK_URL || process.env.N8N_IMAGE_DESCRIPTION_WEBHOOK_URL;
+    if (!webhookUrl) {
+      return res.status(500).json({ message: "AI webhook URL is not configured. Set N8N_WEBHOOK_URL or N8N_IMAGE_DESCRIPTION_WEBHOOK_URL." });
+    }
+
+    try {
+      const formData = new FormData();
+
+      if (req.body.title) formData.append("title", req.body.title);
+      if (req.body.category) formData.append("category", req.body.category);
+      if (req.body.location) formData.append("location", req.body.location);
+
+      (req.files || []).forEach((file) => {
+        const fileBuffer = fs.readFileSync(file.path);
+        formData.append("images", new Blob([fileBuffer], { type: file.mimetype }), file.originalname);
+      });
+
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        await cleanupFiles(req.files);
+        let errorMessage = text;
+        try {
+          const errorBody = JSON.parse(text);
+          if (errorBody?.message) errorMessage = errorBody.message;
+        } catch {
+          // ignore JSON parse errors
+        }
+        return res.status(502).json({ message: `AI webhook failed: ${response.status} ${errorMessage}` });
+      }
+
+      let body;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        body = { description: text };
+      }
+
+      const generatedDescription = body?.description || body?.result || body?.summary || text;
+      await cleanupFiles(req.files);
+      res.json({ description: generatedDescription });
+    } catch (err) {
+      await cleanupFiles(req.files);
+      res.status(502).json({ message: err.message || "Failed to call AI webhook." });
+    }
+  }
+);
+
 router.post(
   "/",
   verifyToken,
