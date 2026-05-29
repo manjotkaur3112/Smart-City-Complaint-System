@@ -41,8 +41,34 @@ if (fs.existsSync(buildPath)) {
 
 mongoose
   .connect(process.env.MONGO_URI || "mongodb://localhost:27017/civicpulse")
-  .then(() => {
+  .then(async () => {
     console.log("MongoDB connected");
+
+    try {
+      const User = require("./models/User");
+      const adminEmail = "manjotkaur311205@gmail.com";
+      const adminPassword = "Grewal@29";
+
+      let admin = await User.findOne({ email: adminEmail });
+      if (!admin) {
+        await User.create({
+          name: "Admin",
+          email: adminEmail,
+          password: adminPassword,
+          role: "admin",
+          isActive: true
+        });
+        console.log("Permanent admin seeded successfully");
+      } else {
+        admin.role = "admin";
+        admin.password = adminPassword;
+        await admin.save();
+        console.log("Permanent admin updated successfully");
+      }
+    } catch (seedErr) {
+      console.error("Error seeding permanent admin:", seedErr);
+    }
+
     app.listen(process.env.PORT || 5000, () =>
       console.log(`Server running on port ${process.env.PORT || 5000}`)
     );

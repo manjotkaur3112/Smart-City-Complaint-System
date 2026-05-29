@@ -25,22 +25,32 @@ const ROLES = [
 ];
 
 export default function Register() {
-  const { registerWithEmail } = useAuth();
+  const { registerWithEmail, verifyOTP } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "", role: "citizen" });
   const [loading, setLoading] = useState(false);
+  const [otpRequired, setOtpRequired] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) return toast.error("Please enter a valid email address");
     if (form.password !== form.confirm) return toast.error("Passwords do not match");
     if (form.password.length < 6) return toast.error("Password must be at least 6 characters");
     setLoading(true);
     try {
-      await registerWithEmail(form.email, form.password, form.name, form.role);
-      toast.success(`Account created! Welcome to CivicPulse as ${form.role}.`);
-      navigate("/home");
+      const data = await registerWithEmail(form.email, form.password, form.name, form.role);
+      if (data && data.verificationRequired) {
+        toast.success("Verification code sent to your email!");
+        setOtpRequired(true);
+      } else {
+        toast.success(`Account created! Welcome to CivicPulse as ${form.role}.`);
+        navigate("/home");
+      }
     } catch (err) {
       console.error("Register error:", err);
       toast.error(err.response?.data?.message || err.message || "Registration failed");
@@ -49,6 +59,70 @@ export default function Register() {
     }
   };
 
+  const handleOTPVerify = async (e) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      return toast.error("Please enter a valid 6-digit OTP code");
+    }
+    setVerifying(true);
+    try {
+      await verifyOTP(form.email, otp);
+      toast.success("Account created and verified! Welcome to CivicPulse.");
+      navigate("/home");
+    } catch (err) {
+      console.error("OTP verification error:", err);
+      const errorMsg = err.response?.data?.message || err.message || "Verification failed";
+      toast.error(errorMsg);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  if (otpRequired) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={styles.header}>
+            <div style={styles.logo}>🔐</div>
+            <h2 style={{ color: "#e2e8f0", marginBottom: 4 }}>Verify Email</h2>
+            <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
+              Enter the 6-digit OTP code sent to:
+            </p>
+            <p style={{ color: "#4f8ef7", fontSize: "0.85rem", fontWeight: 600, marginTop: 4 }}>
+              {form.email}
+            </p>
+          </div>
+
+          <form onSubmit={handleOTPVerify}>
+            <div className="form-group">
+              <label className="form-label">Verification Code (OTP)</label>
+              <input
+                className="form-control"
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="••••••"
+                style={{ textAlign: "center", fontSize: "1.3rem", letterSpacing: "8px", fontWeight: "bold" }}
+                required
+              />
+            </div>
+            <button className="btn btn-primary w-full" type="submit" disabled={verifying}>
+              {verifying ? "Verifying..." : "Verify & Register"}
+            </button>
+          </form>
+
+          <button
+            className="btn btn-ghost w-full"
+            style={{ marginTop: 16, color: "#64748b", fontSize: "0.85rem", textTransform: "none" }}
+            onClick={() => { setOtpRequired(false); setOtp(""); }}
+          >
+            ← Back to Sign Up
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.page}>
       <div style={styles.card}>
@@ -56,26 +130,6 @@ export default function Register() {
           <div style={styles.logo}>🏙️</div>
           <h2 style={{ color: "#e2e8f0", marginBottom: 4 }}>Create Account</h2>
           <p style={{ color: "#64748b", fontSize: "0.9rem" }}>Join CivicPulse today</p>
-        </div>
-
-        <div style={styles.roleSection}>
-          <label style={styles.roleLabel}>Select Your Role</label>
-          <div style={styles.roleGrid}>
-            {ROLES.map((r) => (
-              <div
-                key={r.value}
-                onClick={() => setForm({ ...form, role: r.value })}
-                style={{
-                  ...styles.roleCard,
-                  ...(form.role === r.value ? styles.roleCardActive : {}),
-                }}
-              >
-                <span style={styles.roleIcon}>{r.icon}</span>
-                <span style={styles.roleName}>{r.label}</span>
-                <span style={styles.roleDesc}>{r.desc}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -125,14 +179,6 @@ export default function Register() {
               placeholder="••••••••"
               required
             />
-          </div>
-
-          <div style={styles.selectedBadge}>
-            Registering as:{" "}
-            <strong style={{ color: "#60a5fa" }}>
-              {ROLES.find((r) => r.value === form.role)?.icon}{" "}
-              {ROLES.find((r) => r.value === form.role)?.label}
-            </strong>
           </div>
 
           <button className="btn btn-primary w-full" type="submit" disabled={loading}>

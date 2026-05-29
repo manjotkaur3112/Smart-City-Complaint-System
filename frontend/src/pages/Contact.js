@@ -11,14 +11,18 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      return toast.error("Please enter a valid email address");
+    }
     setLoading(true);
     try {
       await api.post("/contact", form);
       setSent(true);
       setForm({ name: "", email: "", subject: "", message: "" });
       toast.success("Message sent! We'll get back to you soon.");
-    } catch {
-      toast.error("Failed to send message. Please try again.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to send message. Please try again.");
     } finally { setLoading(false); }
   };
 
@@ -36,7 +40,7 @@ export default function Contact() {
               <h4 style={{ color: "#e2e8f0", marginBottom: 20 }}>Get in Touch</h4>
               {[
                 { icon: "📧", label: "Email", val: "support@civicpulse.gov.in" },
-                { icon: "📞", label: "Helpline", val: "1800-CIVIC-00 (Toll Free)" },
+                { icon: "📞", label: "Helpline", val: "1800-97821-00 (Toll Free)" },
                 { icon: "🕐", label: "Hours", val: "Mon–Sat 9AM–6PM IST" },
                 { icon: "📍", label: "Office", val: "Municipal Corporation HQ, City Hall" },
               ].map((item) => (

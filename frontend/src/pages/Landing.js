@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import CustomChatbot from "../components/CustomChatbot";
 
 const features = [
   { icon: "🚧", title: "Report Issues", desc: "Submit complaints about potholes, garbage, streetlights, water supply and more." },
@@ -82,8 +83,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+      <CustomChatbot />
       <a href="tel:+919782100977" style={styles.callButton} aria-label="Call support">
-        📞 Call Support
+        📞
       </a>
     </main>
   );
@@ -125,17 +127,18 @@ const styles = {
     right: 20,
     bottom: 20,
     zIndex: 100,
-    display: "inline-flex",
+    display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    width: 50,
+    height: 50,
     background: "#10b981",
     color: "#fff",
-    padding: "14px 18px",
-    borderRadius: 999,
-    boxShadow: "0 14px 30px rgba(16,185,129,0.24)",
+    borderRadius: "50%",
+    boxShadow: "0 10px 25px rgba(16,185,129,0.3)",
+    border: "none",
     textDecoration: "none",
-    fontWeight: 700,
-    fontSize: "0.95rem",
+    fontSize: "1.4rem",
+    transition: "transform 0.2s ease"
   },
 };

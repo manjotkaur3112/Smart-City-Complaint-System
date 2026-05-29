@@ -21,6 +21,16 @@ export function AuthProvider({ children }) {
 
   const loginWithEmail = async (email, password) => {
     const res = await api.post("/auth/login", { email, password });
+    if (res.data.otpRequired) {
+      return res.data;
+    }
+    localStorage.setItem("token", res.data.token);
+    setDbUser(res.data.user);
+    return res.data;
+  };
+
+  const verifyOTP = async (email, otp) => {
+    const res = await api.post("/auth/verify-otp", { email, otp });
     localStorage.setItem("token", res.data.token);
     setDbUser(res.data.user);
     return res.data;
@@ -28,6 +38,9 @@ export function AuthProvider({ children }) {
 
   const registerWithEmail = async (email, password, name, role = "citizen") => {
     const res = await api.post("/auth/register", { name, email, password, role });
+    if (res.data.verificationRequired) {
+      return res.data;
+    }
     localStorage.setItem("token", res.data.token);
     setDbUser(res.data.user);
     return res.data;
@@ -49,6 +62,7 @@ export function AuthProvider({ children }) {
     dbUser,
     loading,
     loginWithEmail,
+    verifyOTP,
     registerWithEmail,
     logout,
     updateProfile,

@@ -3,7 +3,19 @@ const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
-    email: { type: String, required: true, unique: true, lowercase: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      validate: {
+        validator: function (v) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: props => `${props.value} is not a valid email address!`
+      }
+    },
     name: { type: String, required: true },
     password: { type: String, required: true },
     photoURL: { type: String, default: "" },
@@ -11,6 +23,11 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     address: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
+    otp: { type: String, default: "" },
+    otpExpires: { type: Date },
+    isVerified: { type: Boolean, default: true },
+    resetPasswordToken: { type: String, default: "" },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );

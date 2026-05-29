@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
 import toast from "react-hot-toast";
+import CustomChatbot from "../components/CustomChatbot";
 
 const CATEGORIES = [
   { value: "pothole", label: "🚧 Pothole", desc: "Road damage, craters" },
@@ -191,15 +192,6 @@ export default function CitizenHome() {
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                     >
-                      <label htmlFor="images" style={styles.fileDropLabel}>
-                        <span style={styles.fileDropIcon}>📁</span>
-                        <div>
-                          <strong>Drag & drop to upload files</strong>
-                          <div style={{ color: "#94a3b8", marginTop: 6, fontSize: "0.9rem" }}>
-                            or click to browse images (PNG, JPG, JPEG)
-                          </div>
-                        </div>
-                      </label>
                       <input
                         id="images"
                         className="form-control"
@@ -210,12 +202,35 @@ export default function CitizenHome() {
                         onChange={handleFiles}
                         style={styles.fileInput}
                       />
+                      {form.images && form.images.length > 0 ? (
+                        <div style={{ width: "100%", textAlign: "center" }}>
+                          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 16 }}>
+                            {form.images.map((file, idx) => (
+                              <div key={idx} style={{ position: 'relative' }}>
+                                <img 
+                                  src={URL.createObjectURL(file)} 
+                                  alt={file.name} 
+                                  style={{ width: 240, height: 160, objectFit: 'contain', borderRadius: 8, border: '2px solid rgba(79,142,247,0.4)', backgroundColor: 'rgba(0,0,0,0.2)' }} 
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <label htmlFor="images" style={{ display: "inline-block", cursor: "pointer", color: "#4f8ef7", fontSize: "0.9rem", fontWeight: 600 }}>
+                            + Add / Change Images
+                          </label>
+                        </div>
+                      ) : (
+                        <label htmlFor="images" style={styles.fileDropLabel}>
+                          <span style={styles.fileDropIcon}>📁</span>
+                          <div>
+                            <strong>Drag & drop to upload files</strong>
+                            <div style={{ color: "#94a3b8", marginTop: 6, fontSize: "0.9rem" }}>
+                              or click to browse images (PNG, JPG, JPEG)
+                            </div>
+                          </div>
+                        </label>
+                      )}
                     </div>
-                    {imageNames.length > 0 && (
-                      <div style={{ marginTop: 8, color: "#94a3b8", fontSize: "0.85rem" }}>
-                        Selected: {imageNames.join(", ")}
-                      </div>
-                    )}
                   </div>
 
                   <div className="form-group" style={{ marginTop: 16 }}>
@@ -317,8 +332,9 @@ export default function CitizenHome() {
           </div>
         </div>
       </div>
+      <CustomChatbot />
       <a href="tel:+919782100977" style={styles.callButton} aria-label="Call support">
-        📞 Call Support
+        📞
       </a>
     </div>
   );
@@ -341,6 +357,6 @@ const styles = {
   fileInput: { position: "absolute", width: 0, height: 0, opacity: 0, overflow: "hidden", pointerEvents: "none" },
   step_info: { display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 },
   stepNum: { width: 24, height: 24, borderRadius: "50%", background: "rgba(79,142,247,0.2)", color: "#4f8ef7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: 700, flexShrink: 0 },
-  callButton: { position: "fixed", right: 20, bottom: 20, zIndex: 200, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#10b981", color: "#fff", padding: "14px 18px", borderRadius: 999, boxShadow: "0 14px 30px rgba(16,185,129,0.24)", border: "none", textDecoration: "none", fontWeight: 700, fontSize: "0.95rem", transition: "transform 0.2s ease, box-shadow 0.2s ease" },
+  callButton: { position: "fixed", right: 20, bottom: 20, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", width: 50, height: 50, background: "#10b981", color: "#fff", borderRadius: "50%", boxShadow: "0 10px 25px rgba(16,185,129,0.3)", border: "none", textDecoration: "none", fontSize: "1.4rem", transition: "transform 0.2s ease" },
   dsaTag: { background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 8, padding: "8px 12px", fontSize: "0.8rem", color: "#94a3b8", marginBottom: 8 },
 };

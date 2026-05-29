@@ -69,35 +69,35 @@ export default function History() {
 
         <div className="card" style={styles.dsaPanel}>
           <div style={{ flex: 1, display: "grid", gap: 10 }}>
-            <label style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Linear Search</label>
+            {/* <label style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Linear Search</label> */}
             <input
               className="form-control"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search title, category or location..."
             />
-            <p style={{ margin: 0, color: "#64748b", fontSize: "0.85rem" }}>
+            {/* <p style={{ margin: 0, color: "#64748b", fontSize: "0.85rem" }}>
               Uses linear search to filter complaints by matching query text.
-            </p>
+            </p> */}
           </div>
 
           <div style={{ flex: 1, display: "grid", gap: 10 }}>
-            <label style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Binary Search (exact ID only)</label>
+            {/* <label style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Binary Search (exact ID only)</label> */}
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <input
                 className="form-control"
                 style={{ flex: 1 }}
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}
-                placeholder="Enter full complaint ID, e.g. CP-3D18AC7B"
+                placeholder="Enter Complaint ID, e.g. 2332"
               />
               <button className="btn btn-primary" type="button" onClick={handleBinarySearch}>
                 Search
               </button>
             </div>
-            <p style={{ margin: 0, color: "#64748b", fontSize: "0.85rem" }}>
+            {/* <p style={{ margin: 0, color: "#64748b", fontSize: "0.85rem" }}>
               Uses binary search on sorted complaint IDs for fast exact lookup.
-            </p>
+            </p> */}
             {binaryResult && (
               <div style={styles.binaryResult}>
                 <div>
@@ -142,7 +142,7 @@ export default function History() {
 
                 {expanded === c._id && (
                   <div style={styles.expanded}>
-                    <p style={{ fontSize: "0.9rem", color: "#94a3b8", marginBottom: 12 }}><strong>Summary:</strong> {c.description}</p>
+                    {/* <p style={{ fontSize: "0.9rem", color: "#94a3b8", marginBottom: 12 }}><strong>Summary:</strong> {c.description}</p> */}
                     <p style={{ fontSize: "0.9rem", color: "#94a3b8", marginBottom: 16 }}><strong>Details:</strong> {c.description}</p>
                     {c.images?.length > 0 && (
                       <div style={styles.imageGrid}>
@@ -196,7 +196,7 @@ export default function History() {
 }
 
 const styles = {
-  dsaPanel: { display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end" },
+  dsaPanel: { display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-end", marginBottom: "16px" },
   binaryResult: { display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: 8, padding: "10px 14px", marginTop: 12, fontSize: "0.85rem" },
   complaintHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 },
   complaintLeft: { display: "flex", flexDirection: "column", gap: 4 },

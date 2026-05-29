@@ -5,12 +5,12 @@ import { countByField } from "../dsa";
 
 export default function AuthorityDashboard() {
   const [complaints, setComplaints] = useState([]);
-  const [stats, setStats]           = useState({});
-  const [loading, setLoading]       = useState(true);
-  const [selected, setSelected]     = useState(null);
+  const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [updateForm, setUpdateForm] = useState({ status: "", remarks: "" });
-  const [activeTab, setActiveTab]   = useState("complaints");
+  const [activeTab, setActiveTab] = useState("complaints");
 
   const fetchAll = useCallback(async () => {
     try {
@@ -21,7 +21,7 @@ export default function AuthorityDashboard() {
       setComplaints(cRes.data.complaints || []);
       setStats(sRes.data);
     } catch { toast.error("Failed to load complaints"); }
-    finally  { setLoading(false); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -62,10 +62,10 @@ export default function AuthorityDashboard() {
 
         <div className="grid-4 mb-24">
           {[
-            { label: "Total",       value: stats.total      || complaints.length, color: "#4f8ef7" },
-            { label: "Pending",     value: stats.pending    || 0,                 color: "#f59e0b" },
-            { label: "In Progress", value: stats.inProgress || 0,                 color: "#a78bfa" },
-            { label: "Resolved",    value: stats.resolved   || 0,                 color: "#10b981" },
+            { label: "Total", value: stats.total || complaints.length, color: "#4f8ef7" },
+            { label: "Pending", value: stats.pending || 0, color: "#f59e0b" },
+            { label: "In Progress", value: stats.inProgress || 0, color: "#a78bfa" },
+            { label: "Resolved", value: stats.resolved || 0, color: "#10b981" },
           ].map((s) => (
             <div key={s.label} className="card stat-card">
               <div className="stat-value" style={{ color: s.color }}>{s.value}</div>
@@ -135,11 +135,11 @@ export default function AuthorityDashboard() {
             <div className="card">
               <h4 style={{ color: "#e2e8f0", marginBottom: 20 }}>Status Overview</h4>
               {[
-                { key: "pending",     color: "#f59e0b", val: stats.pending    || 0 },
-                { key: "assigned",    color: "#4f8ef7", val: stats.assigned   || 0 },
+                { key: "pending", color: "#f59e0b", val: stats.pending || 0 },
+                { key: "assigned", color: "#4f8ef7", val: stats.assigned || 0 },
                 { key: "in-progress", color: "#a78bfa", val: stats.inProgress || 0 },
-                { key: "resolved",    color: "#10b981", val: stats.resolved   || 0 },
-                { key: "rejected",    color: "#ef4444", val: stats.rejected   || 0 },
+                { key: "resolved", color: "#10b981", val: stats.resolved || 0 },
+                { key: "rejected", color: "#ef4444", val: stats.rejected || 0 },
               ].map((s) => (
                 <div key={s.key} style={S.barRow}>
                   <span className={`badge badge-${s.key}`} style={{ width: 90, textAlign: "center" }}>{s.key}</span>
@@ -164,7 +164,7 @@ export default function AuthorityDashboard() {
                 <button className="btn btn-ghost btn-sm" onClick={() => setSelected(null)}>✕</button>
               </div>
               <div style={{ padding: 24 }}>
-                <p style={{ fontSize: "0.9rem", color: "#94a3b8", marginBottom: 10 }}><strong>Summary:</strong> {selected.description}</p>
+                {/* <p style={{ fontSize: "0.9rem", color: "#94a3b8", marginBottom: 10 }}><strong>Summary:</strong> {selected.description}</p> */}
                 <p style={{ fontSize: "0.9rem", color: "#94a3b8", marginBottom: 16 }}><strong>Details:</strong> {selected.description}</p>
                 {selected.images?.length > 0 && (
                   <div style={S.imageGrid}>
@@ -188,7 +188,7 @@ export default function AuthorityDashboard() {
                   <label className="form-label">Update Status</label>
                   <select className="form-control" value={updateForm.status}
                     onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}>
-                    {["pending","assigned","in-progress","resolved","rejected"].map((s) => (
+                    {["pending", "assigned", "in-progress", "resolved", "rejected"].map((s) => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
@@ -235,25 +235,25 @@ export default function AuthorityDashboard() {
 }
 
 const S = {
-  pageHeader:   { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 },
-  badge:        { background: "rgba(79,142,247,0.15)", border: "1px solid rgba(79,142,247,0.4)", color: "#4f8ef7", padding: "6px 16px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em" },
+  pageHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 },
+  badge: { background: "rgba(79,142,247,0.15)", border: "1px solid rgba(79,142,247,0.4)", color: "#4f8ef7", padding: "6px 16px", borderRadius: 20, fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em" },
   accessNotice: { background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 10, padding: "12px 16px", marginBottom: 24, fontSize: "0.85rem", color: "#64748b" },
-  tabs:         { display: "flex", gap: 4, marginBottom: 24, background: "#131629", padding: 4, borderRadius: 10, width: "fit-content" },
-  tab:          { padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", fontWeight: 500, background: "transparent", color: "#64748b", transition: "all 0.2s" },
-  tabActive:    { background: "#1a1d30", color: "#e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" },
-  freqBadge:    { background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 8, padding: "6px 12px", fontSize: "0.8rem", display: "flex", gap: 8, alignItems: "center", color: "#94a3b8" },
-  barRow:       { display: "flex", alignItems: "center", gap: 14, marginBottom: 14 },
-  barTrack:     { flex: 1, height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" },
-  barFill:      { height: "100%", background: "linear-gradient(90deg,#4f8ef7,#7c3aed)", borderRadius: 4, transition: "width 0.5s" },
-  overlay:      { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
-  modal:        { background: "#1a1d30", border: "1px solid rgba(79,142,247,0.3)", borderRadius: 16, width: "100%", maxWidth: 580, maxHeight: "85vh", overflowY: "auto" },
-  modalHeader:  { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)" },
-  imageGrid:    { display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 },
+  tabs: { display: "flex", gap: 4, marginBottom: 24, background: "#131629", padding: 4, borderRadius: 10, width: "fit-content" },
+  tab: { padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", fontWeight: 500, background: "transparent", color: "#64748b", transition: "all 0.2s" },
+  tabActive: { background: "#1a1d30", color: "#e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.3)" },
+  freqBadge: { background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 8, padding: "6px 12px", fontSize: "0.8rem", display: "flex", gap: 8, alignItems: "center", color: "#94a3b8" },
+  barRow: { display: "flex", alignItems: "center", gap: 14, marginBottom: 14 },
+  barTrack: { flex: 1, height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" },
+  barFill: { height: "100%", background: "linear-gradient(90deg,#4f8ef7,#7c3aed)", borderRadius: 4, transition: "width 0.5s" },
+  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
+  modal: { background: "#1a1d30", border: "1px solid rgba(79,142,247,0.3)", borderRadius: 16, width: "100%", maxWidth: 580, maxHeight: "85vh", overflowY: "auto" },
+  modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)" },
+  imageGrid: { display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 },
   imagePreview: { width: 120, height: 90, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer" },
-  imageOverlay:  { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
-  imageModal:    { width: "80vw", maxWidth: 960, maxHeight: "80vh", overflow: "hidden", borderRadius: 16, boxShadow: "0 0 40px rgba(0,0,0,0.6)" },
+  imageOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 },
+  imageModal: { width: "80vw", maxWidth: 960, maxHeight: "80vh", overflow: "hidden", borderRadius: 16, boxShadow: "0 0 40px rgba(0,0,0,0.6)" },
   imageModalImg: { width: "100%", height: "100%", objectFit: "contain", display: "block" },
   timelineItem: { display: "flex", gap: 12, marginBottom: 12, paddingLeft: 8 },
-  timelineDot:  { width: 8, height: 8, borderRadius: "50%", background: "#4f8ef7", marginTop: 8, flexShrink: 0 },
+  timelineDot: { width: 8, height: 8, borderRadius: "50%", background: "#4f8ef7", marginTop: 8, flexShrink: 0 },
 };
 

@@ -24,7 +24,18 @@ const transporter = nodemailer.createTransport(mailConfig);
 
 transporter.verify((err, success) => {
   if (err) {
-    console.error("Email transporter verification failed:", err.message || err);
+    const errMsg = err.message || String(err);
+    if (err.code === "EAUTH" || errMsg.includes("535") || errMsg.includes("BadCredentials")) {
+      console.warn("\n====================================================================");
+      console.warn("Contact Email transporter warning: SMTP Authentication Failed!");
+      console.warn("Gmail no longer allows standard account passwords for SMTP.");
+      console.warn("To resolve this, please generate a 16-character 'App Password' from");
+      console.warn("your Google Account settings and put it in backend/.env under EMAIL_PASS.");
+      console.warn("Guide: https://support.google.com/accounts/answer/185833");
+      console.warn("====================================================================\n");
+    } else {
+      console.error("Email transporter verification failed:", errMsg);
+    }
   } else {
     console.log("Email transporter is configured and ready to send messages.");
   }
@@ -42,6 +53,14 @@ const buildContactHtml = ({ name, email, subject, message, createdAt }) => `
 
 router.post("/", async (req, res) => {
   try {
+    const { name, email, subject, message } = req.body;
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
     const contact = await Contact.create(req.body);
     let emailError = null;
 
@@ -70,6 +89,10 @@ router.post("/", async (req, res) => {
 
     res.status(201).json(response);
   } catch (err) {
+    if (err.name === "ValidationError") {
+      const message = Object.values(err.errors).map(e => e.message).join(", ");
+      return res.status(400).json({ message });
+    }
     res.status(500).json({ message: err.message });
   }
 });

@@ -7,6 +7,8 @@ import Footer from "./components/Footer";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import CitizenHome from "./pages/CitizenHome";
 import AuthorityDashboard from "./pages/AuthorityDashboard";
 import AdminPanel from "./pages/AdminPanel";
@@ -45,6 +47,8 @@ function AppRoutes() {
         <Route path="/"          element={currentUser ? <RoleHome /> : <Landing />} />
         <Route path="/login"     element={currentUser ? <RoleHome /> : <Login />} />
         <Route path="/register"  element={currentUser ? <RoleHome /> : <Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password"  element={<ResetPassword />} />
 
         <Route path="/home"     element={<ProtectedRoute roles={["citizen"]}><CitizenHome /></ProtectedRoute>} />
         <Route path="/history"  element={<ProtectedRoute roles={["citizen"]}><History /></ProtectedRoute>} />

@@ -3,7 +3,7 @@ import api from "../utils/api";
 import toast from "react-hot-toast";
 import { insertionSort, linearSearch } from "../dsa";
 
-const TABS = ["overview", "users", "complaints", "categories"];
+const TABS = ["overview", "users", "complaints", "categories", "authority"];
 
 export default function AdminPanel() {
   const [users, setUsers]             = useState([]);
@@ -17,6 +17,79 @@ export default function AdminPanel() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [updateForm, setUpdateForm]   = useState({ status: "", remarks: "" });
   const [filterStatus, setFilterStatus] = useState("");
+  
+  // State for authority creation
+  const [authForm, setAuthForm]       = useState({ name: "", email: "", password: "" });
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // States for authority email verification
+  const [authOtpRequired, setAuthOtpRequired] = useState(false);
+  const [authOtp, setAuthOtp]                 = useState("");
+  const [authEmailToVerify, setAuthEmailToVerify] = useState("");
+  const [authVerifying, setAuthVerifying]     = useState(false);
+
+  const handleAuthFormChange = (e) => {
+    setAuthForm({ ...authForm, [e.target.name]: e.target.value });
+  };
+
+  const handleCreateAuthority = async (e) => {
+    e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(authForm.email)) {
+      return toast.error("Please enter a valid email address");
+    }
+    if (authForm.password.length < 6) {
+      return toast.error("Password must be at least 6 characters");
+    }
+    setAuthLoading(true);
+    try {
+      const res = await api.post("/admin/create-authority", authForm);
+      if (res.data && res.data.verificationRequired) {
+        toast.success("Authority account created. Verification code sent!");
+        setAuthEmailToVerify(res.data.email);
+        setAuthOtpRequired(true);
+      } else {
+        toast.success(res.data.message || "Authority account created successfully");
+        setAuthForm({ name: "", email: "", password: "" });
+        const uRes = await api.get("/admin/users");
+        setUsers(uRes.data.users);
+        setActiveTab("users");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to create authority account");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleVerifyAuthorityEmail = async (e) => {
+    e.preventDefault();
+    if (authOtp.length !== 6) {
+      return toast.error("Please enter a valid 6-digit OTP code");
+    }
+    setAuthVerifying(true);
+    try {
+      const res = await api.post("/admin/verify-authority", { email: authEmailToVerify, otp: authOtp });
+      toast.success(res.data.message || "Authority account email verified and activated!");
+      
+      // Reset forms and verification states
+      setAuthForm({ name: "", email: "", password: "" });
+      setAuthOtpRequired(false);
+      setAuthOtp("");
+      setAuthEmailToVerify("");
+      
+      // Refresh user list and switch tab
+      const uRes = await api.get("/admin/users");
+      setUsers(uRes.data.users);
+      setActiveTab("users");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to verify authority email");
+    } finally {
+      setAuthVerifying(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -80,7 +153,7 @@ export default function AdminPanel() {
 
   if (loading) return <div className="loading-center"><div className="spinner" /></div>;
 
-  const tabIcons = { overview: "📊", users: "👥", complaints: "📋", categories: "🗂️" };
+  const tabIcons = { overview: "📊", users: "👥", complaints: "📋", categories: "🗂️", authority: "🏛️" };
 
   return (
     <div className="page">
@@ -304,6 +377,91 @@ export default function AdminPanel() {
                     <span style={{ color: "#4f8ef7", fontFamily: "monospace", width: 30 }}>{p.count}</span>
                   </div>
                 ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {activeTab === "authority" && (
+          <div className="card" style={{ maxWidth: 500, margin: "0 auto" }}>
+            {authOtpRequired ? (
+              <>
+                <h4 style={{ color: "#e2e8f0", marginBottom: 6 }}>🏛️ Verify Authority Email</h4>
+                <p style={{ color: "#64748b", fontSize: "0.85rem", marginBottom: 20 }}>
+                  Enter the 6-digit OTP code sent to verify <strong style={{ color: "#4f8ef7" }}>{authEmailToVerify}</strong>
+                </p>
+                <form onSubmit={handleVerifyAuthorityEmail}>
+                  <div className="form-group">
+                    <label className="form-label">Verification Code (OTP)</label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      value={authOtp}
+                      onChange={(e) => setAuthOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="••••••"
+                      style={{ textAlign: "center", fontSize: "1.3rem", letterSpacing: "8px", fontWeight: "bold" }}
+                      required
+                    />
+                  </div>
+                  <button className="btn btn-primary w-full" type="submit" disabled={authVerifying}>
+                    {authVerifying ? "Verifying..." : "Verify & Activate Account"}
+                  </button>
+                </form>
+                <button
+                  className="btn btn-ghost w-full"
+                  style={{ marginTop: 16, color: "#64748b", fontSize: "0.85rem", textTransform: "none" }}
+                  onClick={() => { setAuthOtpRequired(false); setAuthOtp(""); setAuthEmailToVerify(""); }}
+                >
+                  ← Back to Creation
+                </button>
+              </>
+            ) : (
+              <>
+                <h4 style={{ color: "#e2e8f0", marginBottom: 6 }}>🏛️ Create Authority Account</h4>
+                <p style={{ color: "#64748b", fontSize: "0.85rem", marginBottom: 20 }}>
+                  Register a new official department or authority account
+                </p>
+                <form onSubmit={handleCreateAuthority}>
+                  <div className="form-group">
+                    <label className="form-label">Authority Name</label>
+                    <input
+                      className="form-control"
+                      type="text"
+                      name="name"
+                      value={authForm.name}
+                      onChange={handleAuthFormChange}
+                      placeholder="e.g. Water Supply Department"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Authority Email</label>
+                    <input
+                      className="form-control"
+                      type="email"
+                      name="email"
+                      value={authForm.email}
+                      onChange={handleAuthFormChange}
+                      placeholder="e.g. water@city.gov"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <input
+                      className="form-control"
+                      type="password"
+                      name="password"
+                      value={authForm.password}
+                      onChange={handleAuthFormChange}
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                  <button className="btn btn-primary w-full" type="submit" disabled={authLoading}>
+                    {authLoading ? "Creating..." : "Create Authority Account"}
+                  </button>
+                </form>
               </>
             )}
           </div>
